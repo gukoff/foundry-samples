@@ -76,7 +76,7 @@ resource peSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' existin
 // - Creates network interface in customer hub subnet
 // - Establishes private connection to AI Services account
 resource aiAccountPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
-  name: '${aiAccountName}-private-endpoint'
+  name: '${aiAccountName}-private-endpoint-${suffix}'
   location: resourceGroup().location
   properties: {
     subnet: {
@@ -102,7 +102,7 @@ resource aiAccountPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01
 // - Creates network interface in customer hub subnet
 // - Establishes private connection to AI Search service
 resource aiSearchPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
-  name: '${aiSearchName}-private-endpoint'
+  name: '${aiSearchName}-private-endpoint-${suffix}'
   location: resourceGroup().location
   properties: {
     subnet: {
@@ -110,7 +110,7 @@ resource aiSearchPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01'
     }
     privateLinkServiceConnections: [
       {
-        name: '${aiSearchName}-private-link-service-connection'
+        name: '${aiSearchName}-private-link-service-connection-${suffix}'
         properties: {
           privateLinkServiceId: aiSearch.id
           groupIds: [
@@ -128,7 +128,7 @@ resource aiSearchPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01'
 // - Creates network interface in customer hub subnet
 // - Establishes private connection to blob storage
 resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
-  name: '${storageName}-private-endpoint'
+  name: '${storageName}-private-endpoint-${suffix}'
   location: resourceGroup().location
   properties: {
     subnet: {
@@ -136,7 +136,7 @@ resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' 
     }
     privateLinkServiceConnections: [
       {
-        name: '${storageName}-private-link-service-connection'
+        name: '${storageName}-private-link-service-connection-${suffix}'
         properties: {
           privateLinkServiceId: storageAccount.id
           groupIds: [
@@ -151,7 +151,7 @@ resource storagePrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' 
 /*--------------------------------------------- Cosmos DB Private Endpoint -------------------------------------*/
 
 resource cosmosDBPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01' = {
-  name: '${cosmosDBName}-private-endpoint'
+  name: '${cosmosDBName}-private-endpoint-${suffix}'
   location: resourceGroup().location
   properties: {
     subnet: {
@@ -159,7 +159,7 @@ resource cosmosDBPrivateEndpoint 'Microsoft.Network/privateEndpoints@2024-05-01'
     }
     privateLinkServiceConnections: [
       {
-        name: '${cosmosDBName}-private-link-service-connection'
+        name: '${cosmosDBName}-private-link-service-connection-${suffix}'
         properties: {
           privateLinkServiceId: cosmosDBAccount.id
           groupIds: [
@@ -235,7 +235,7 @@ resource cognitiveServicesLink 'Microsoft.Network/privateDnsZones/virtualNetwork
 // 3) DNS Zone Group for AI Services
 resource aiServicesDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
   parent: aiAccountPrivateEndpoint
-  name: '${aiAccountName}-dns-group'
+  name: '${aiAccountName}-dns-group-${suffix}'
   properties: {
     privateDnsZoneConfigs: [
       {
@@ -290,7 +290,7 @@ resource aiSearchLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@202
 // 3) DNS Zone Group for AI Search
 resource aiSearchDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
   parent: aiSearchPrivateEndpoint
-  name: '${aiSearchName}-dns-group'
+  name: '${aiSearchName}-dns-group-${suffix}'
   properties: {
     privateDnsZoneConfigs: [
       {
@@ -326,7 +326,7 @@ resource storageLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024
 // 3) DNS Zone Group for Storage
 resource storageDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
   parent: storagePrivateEndpoint
-  name: '${storageName}-dns-group'
+  name: '${storageName}-dns-group-${suffix}'
   properties: {
     privateDnsZoneConfigs: [
       {
@@ -363,7 +363,7 @@ resource cosmosDBLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@202
 // 3) DNS Zone Group for Cosmos DB
 resource cosmosDBDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = {
   parent: cosmosDBPrivateEndpoint
-  name: '${cosmosDBName}-dns-group'
+  name: '${cosmosDBName}-dns-group-${suffix}'
   properties: {
     privateDnsZoneConfigs: [
       {

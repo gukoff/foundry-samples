@@ -1,42 +1,52 @@
 @description('Azure region for the deployment')
 param location string
 
-@description('The name of the virtual network')
-param vnetName string = 'agents-vnet-test-clients'
+param vnetId string
+param dnsSubnetId string
+param vpnSubnetId string
 
-@description('The name of Agents Subnet')
-param vpnSubnetName string = 'vpn-subnet'
-
-@description('The name of Hub subnet')
-param dnsSubnetName string = 'dns-subnet'
-
+param dnsResolverName string
+param vpnPublicIpName string
+param vpnGatewayName string
 
 
-@description('Generated from /subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/dnsResolvers/kgukov-dns-resolver')
-resource kgukovdnsresolver 'Microsoft.Network/dnsResolvers@2023-07-01-preview' = {
+resource clientDnsResolver 'Microsoft.Network/dnsResolvers@2023-07-01-preview' = {
   properties: {
     virtualNetwork: {
-      id: '/subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/virtualNetworks/agents-vnet-test'
+      id: vnetId
     }
   }
-  location: 'swedencentral'
-  name: 'kgukov-dns-resolver'
+  location: location
+  name: dnsResolverName
 }
 
 
-
-
-@description('Generated from /subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/publicIPAddresses/ip-vpn-ip172')
-resource ipvpnip 'Microsoft.Network/publicIPAddresses@2024-07-01' = {
-  name: 'ip-vpn-ip172'
+resource inboundEndpoint 'Microsoft.Network/dnsResolvers/inboundEndpoints@2023-07-01-preview' = {
+  properties: {
+    ipConfigurations: [
+      {
+        subnet: {
+          id: dnsSubnetId
+        }
+        privateIpAddress: '172.16.4.4'
+        privateIpAllocationMethod: 'Dynamic'
+      }
+    ]
+  }
   location: 'swedencentral'
+  parent: clientDnsResolver
+  name: 'inbound-endpoint-1'
+}
+
+resource publicIpVpn 'Microsoft.Network/publicIPAddresses@2024-07-01' = {
+  name: vpnPublicIpName
+  location: location
   zones: [
     '1'
     '2'
     '3'
   ]
   properties: {
-    ipAddress: '74.241.211.221'
     publicIPAddressVersion: 'IPv4'
     publicIPAllocationMethod: 'Static'
     idleTimeoutInMinutes: 4
@@ -47,34 +57,22 @@ resource ipvpnip 'Microsoft.Network/publicIPAddresses@2024-07-01' = {
     tier: 'Regional'
   }
 }
-@description('Generated from /subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/virtualNetworkGateways/vpn-agents172')
-resource vpnagents 'Microsoft.Network/virtualNetworkGateways@2024-07-01' = {
-  name: 'vpn-agents172'
-  location: 'swedencentral'
-  tags: {}
+
+resource vpn 'Microsoft.Network/virtualNetworkGateways@2024-07-01' = {
+  name: vpnGatewayName
+  location: location
   properties: {
-    packetCaptureDiagnosticState: 'None'
     enablePrivateIpAddress: false
-    isMigrateToCSES: false
-    isMigratedLegacySKU: false
-    blockUpgradeOfMigratedLegacyGateways: false
-    virtualNetworkGatewayMigrationStatus: {
-      state: 'None'
-      phase: 'None'
-      errorMessage: ''
-    }
     ipConfigurations: [
       {
         name: 'default'
-        id: '/subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/virtualNetworkGateways/vpn-agents172/ipConfigurations/default'
-        type: 'Microsoft.Network/virtualNetworkGateways/ipConfigurations'
         properties: {
           privateIPAllocationMethod: 'Dynamic'
           publicIPAddress: {
-            id: '/subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/publicIPAddresses/ip-vpn-ip172'
+            id: publicIpVpn.id
           }
           subnet: {
-            id: '/subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/virtualNetworks/agents-vnet-test/subnets/GatewaySubnet'
+            id: vpnSubnetId
           }
         }
       }
@@ -92,18 +90,6 @@ resource vpnagents 'Microsoft.Network/virtualNetworkGateways@2024-07-01' = {
     enableBgp: false
     enableHighBandwidthVpnGateway: false
     activeActive: false
-    bgpSettings: {
-      asn: 65515
-      bgpPeeringAddress: '172.16.3.254'
-      peerWeight: 0
-      bgpPeeringAddresses: [
-        {
-          ipconfigurationId: '/subscriptions/0ba8e327-2264-402b-b5f6-602f1fd2b1da/resourceGroups/rg-agents-private-standard-ip172/providers/Microsoft.Network/virtualNetworkGateways/vpn-agents172/ipConfigurations/default'
-          customBgpIpAddresses: []
-        }
-      ]
-    }
-    zones: 'ZoneRedundant'
     vpnGatewayGeneration: 'Generation1'
     allowRemoteVnetTraffic: false
     allowVirtualWanTraffic: false

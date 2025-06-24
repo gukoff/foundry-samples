@@ -19,9 +19,6 @@ param location string
 @description('The name of the virtual network')
 param vnetName string = 'agents-vnet-test-clients'
 
-@description('The name of Agents Subnet')
-param vpnSubnetName string = 'vpn-subnet'
-
 @description('The name of Hub subnet')
 param peSubnetName string = 'pe-subnet'
 
@@ -38,38 +35,49 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
         '10.1.0.0/16'
       ]
     }
-    subnets: [
+  }
+}
+
+resource dnsSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
+  parent: virtualNetwork
+  name: dnsSubnetName
+  properties: {
+    addressPrefix: '10.1.3.0/24'
+    delegations: [
       {
-        name: peSubnetName
+        name: 'Microsoft.Network.dnsResolvers'
         properties: {
-          addressPrefix: '10.1.1.0/24'
-        }
-      }
-      {
-        name: vpnSubnetName
-        properties: {
-          addressPrefix: '10.1.2.0/24'
-        }
-      }
-      {
-        name: dnsSubnetName
-        properties: {
-          addressPrefix: '10.1.3.0/24'
-          delegations: [
-            {
-              name: 'Microsoft.Network.dnsResolvers'
-              properties: {
-                serviceName: 'Microsoft.Network/dnsResolvers'
-              }
-            }
-          ]
+          serviceName: 'Microsoft.Network/dnsResolvers'
         }
       }
     ]
   }
 }
 
+resource vpnSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
+  parent: virtualNetwork
+  name: 'GatewaySubnet'  // it must be named 'GatewaySubnet'
+  properties: {
+    addressPrefix: '10.1.2.0/24'
+  }
+}
+
+resource peSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
+  parent: virtualNetwork
+  name: peSubnetName
+  properties: {
+    addressPrefix: '10.1.1.0/24'
+  }
+}
+
 
 // Output variables
 output peSubnetName string = peSubnetName
+
 output virtualNetworkName string = virtualNetwork.name
+
+output virtualNetworkId string = virtualNetwork.id
+
+output dnsSubnetId string = dnsSubnet.id
+
+output vpnSubnetId string = vpnSubnet.id

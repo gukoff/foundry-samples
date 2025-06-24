@@ -36,8 +36,7 @@ param modelSkuName string = 'GlobalStandard'
 param modelCapacity int = 1
 
 // Create a short, unique suffix, that will be unique to each resource group
-param deploymentTimestamp string = utcNow('yyyyMMddHHmmss')
-var uniqueSuffix = substring(uniqueString('${resourceGroup().id}-${deploymentTimestamp}'), 0, 4)
+var uniqueSuffix = substring(uniqueString('${resourceGroup().id}'), 0, 5)
 var accountName = toLower('${aiServices}${uniqueSuffix}')
 
 @description('Name for your project resource.')
@@ -198,18 +197,19 @@ module privateEndpointAndDNS 'modules-network-secured/private-endpoint-and-dns.b
     }
   }
 
-module privateEndpointAndDNSForClients 'modules-network-secured/private-endpoint-and-dns.bicep' = {
-    name: '${uniqueSuffix}-private-endpoint-client'
-    params: {
-      aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
-      aiSearchName: aiDependencies.outputs.aiSearchName       // AI Search to secure
-      storageName: aiDependencies.outputs.azureStorageName        // Storage to secure
-      cosmosDBName:aiDependencies.outputs.cosmosDBName
-      vnetName: vnetForClients.outputs.virtualNetworkName    // VNet containing subnets
-      peSubnetName: vnetForClients.outputs.peSubnetName        // Subnet for private endpoints
-      suffix: uniqueSuffix                                    // Unique identifier
-    }
-  }
+// module privateEndpointAndDNSForClients 'modules-network-secured/private-endpoint-and-dns.bicep' = {
+//   name: '${uniqueSuffix}-private-endpoint-client'
+//   params: {
+//     aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
+//     aiSearchName: aiDependencies.outputs.aiSearchName       // AI Search to secure
+//     storageName: aiDependencies.outputs.azureStorageName        // Storage to secure
+//     cosmosDBName:aiDependencies.outputs.cosmosDBName
+//     vnetName: vnetForClients.outputs.virtualNetworkName    // VNet containing subnets
+//     peSubnetName: vnetForClients.outputs.peSubnetName        // Subnet for private endpoints
+//     suffix: '${uniqueSuffix}client'                                    // Unique identifier
+//   }
+//   dependsOn: [privateEndpointAndDNS] // Ensure this runs after the main private endpoint and DNS setup
+// }
 
 /*
   Assigns the project SMI the storage blob data contributor role on the storage account
@@ -249,6 +249,19 @@ module aiSearchRoleAssignments 'modules-network-secured/ai-search-role-assignmen
     cosmosAccountRoleAssignments, storageAccountRoleAssignment
   ]
 }
+
+// module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
+//   name: 'vpn-for-clients-${uniqueSuffix}-deployment'
+//   params: {
+//     location: location
+//     vnetId: vnetForClients.outputs.virtualNetworkId
+//     dnsSubnetId: vnetForClients.outputs.dnsSubnetId
+//     vpnSubnetId: vnetForClients.outputs.vpnSubnetId
+//     dnsResolverName: 'dns-resolver-${uniqueSuffix}'
+//     vpnPublicIpName: 'ip-vpn-${uniqueSuffix}'
+//     vpnGatewayName: 'vpn-gateway-${uniqueSuffix}'
+//   }
+// }
 
 output accountName string = aiAccount.outputs.accountName
 output cosmosDBName string = aiDependencies.outputs.cosmosDBName
