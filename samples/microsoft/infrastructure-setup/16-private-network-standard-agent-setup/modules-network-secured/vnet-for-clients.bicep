@@ -60,6 +60,10 @@ resource vpnSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
   properties: {
     addressPrefix: '10.1.2.0/24'
   }
+
+  dependsOn: [
+    dnsSubnet // Ensure DNS subnet is created before VPN subnet
+  ]
 }
 
 resource peSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
@@ -68,6 +72,10 @@ resource peSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = {
   properties: {
     addressPrefix: '10.1.1.0/24'
   }
+
+  dependsOn: [
+    vpnSubnet // Ensure VPN subnet is created before PE subnet
+  ]
 }
 
 

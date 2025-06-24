@@ -19,16 +19,17 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-previ
   parent: account
 }
 
-resource projectCapabilityHost 'Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview' = {
+
+resource projectCapabilityHost 'Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01' = {
   name: projectCapHost
   parent: project
   properties: {
     capabilityHostKind: 'Agents'
+    aiServicesConnections: [account.id]
     vectorStoreConnections: vectorStoreConnections
     storageConnections: storageConnections
     threadStorageConnections: threadConnections
   }
-
 }
 
 output projectCapHost string = projectCapabilityHost.name

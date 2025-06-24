@@ -60,7 +60,7 @@ Standard Setup Network Secured Steps for main.bicep
     'westus2'
   ])
 @description('Location for all resources.')
-param location string = 'eastus2'
+param location string = 'swedencentral'
 
 @description('Name for your AI Services resource.')
 param aiServices string = 'aiservices'
