@@ -32,14 +32,14 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '100.64.0.0/20'
+        '173.16.0.0/16'
       ]
     }
     subnets: [
       {
         name: agentSubnetName
         properties: {
-          addressPrefix: '100.64.0.0/24'
+          addressPrefix: '173.16.1.0/24'
           delegations: [
             {
               name: 'Microsoft.app/environments'
@@ -53,7 +53,7 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
       {
         name: peSubnetName
         properties: {
-          addressPrefix: '100.64.1.0/24'
+          addressPrefix: '173.16.2.0/24'
         }
       }
     ]

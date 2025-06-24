@@ -17,13 +17,16 @@ This module deploys the core network infrastructure with security controls:
 param location string
 
 @description('The name of the virtual network')
-param vnetName string = 'agents-vnet-test'
+param vnetName string = 'agents-vnet-test-clients'
 
 @description('The name of Agents Subnet')
-param agentSubnetName string = 'agent-subnet'
+param vpnSubnetName string = 'vpn-subnet'
 
 @description('The name of Hub subnet')
 param peSubnetName string = 'pe-subnet'
+
+@description('The name of Hub subnet')
+param dnsSubnetName string = 'dns-subnet'
 
 
 resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
@@ -32,35 +35,41 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-05-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        '100.64.0.0/20'
+        '10.1.0.0/16'
       ]
     }
     subnets: [
       {
-        name: agentSubnetName
+        name: peSubnetName
         properties: {
-          addressPrefix: '100.64.0.0/24'
+          addressPrefix: '10.1.1.0/24'
+        }
+      }
+      {
+        name: vpnSubnetName
+        properties: {
+          addressPrefix: '10.1.2.0/24'
+        }
+      }
+      {
+        name: dnsSubnetName
+        properties: {
+          addressPrefix: '10.1.3.0/24'
           delegations: [
             {
-              name: 'Microsoft.app/environments'
+              name: 'Microsoft.Network.dnsResolvers'
               properties: {
-                serviceName: 'Microsoft.App/environments'
+                serviceName: 'Microsoft.Network/dnsResolvers'
               }
             }
           ]
         }
       }
-      {
-        name: peSubnetName
-        properties: {
-          addressPrefix: '100.64.1.0/24'
-        }
-      }
     ]
   }
 }
+
+
 // Output variables
 output peSubnetName string = peSubnetName
-output agentSubnetName string = agentSubnetName
-output agentSubnetId string = '${virtualNetwork.id}/subnets/${agentSubnetName}'
 output virtualNetworkName string = virtualNetwork.name
