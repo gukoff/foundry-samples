@@ -81,3 +81,7 @@ output virtualNetworkId string = virtualNetwork.id
 output dnsSubnetId string = dnsSubnet.id
 
 output vpnSubnetId string = vpnSubnet.id
+
+output virtualNetworkResourceGroup string = resourceGroup().name
+
+output virtualNetworkSubscriptionId string = subscription().subscriptionId
