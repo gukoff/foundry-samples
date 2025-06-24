@@ -197,19 +197,19 @@ module privateEndpointAndDNS 'modules-network-secured/private-endpoint-and-dns.b
     }
   }
 
-// module privateEndpointAndDNSForClients 'modules-network-secured/private-endpoint-and-dns.bicep' = {
-//   name: '${uniqueSuffix}-private-endpoint-client'
-//   params: {
-//     aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
-//     aiSearchName: aiDependencies.outputs.aiSearchName       // AI Search to secure
-//     storageName: aiDependencies.outputs.azureStorageName        // Storage to secure
-//     cosmosDBName:aiDependencies.outputs.cosmosDBName
-//     vnetName: vnetForClients.outputs.virtualNetworkName    // VNet containing subnets
-//     peSubnetName: vnetForClients.outputs.peSubnetName        // Subnet for private endpoints
-//     suffix: '${uniqueSuffix}client'                                    // Unique identifier
-//   }
-//   dependsOn: [privateEndpointAndDNS] // Ensure this runs after the main private endpoint and DNS setup
-// }
+module privateEndpointAndDNSForClients 'modules-network-secured/private-endpoint-and-dns.bicep' = {
+  name: '${uniqueSuffix}-private-endpoint-client'
+  params: {
+    aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
+    aiSearchName: aiDependencies.outputs.aiSearchName       // AI Search to secure
+    storageName: aiDependencies.outputs.azureStorageName        // Storage to secure
+    cosmosDBName:aiDependencies.outputs.cosmosDBName
+    vnetName: vnetForClients.outputs.virtualNetworkName    // VNet containing subnets
+    peSubnetName: vnetForClients.outputs.peSubnetName        // Subnet for private endpoints
+    suffix: '${uniqueSuffix}client'                                    // Unique identifier
+  }
+  dependsOn: [privateEndpointAndDNS] // Ensure this runs after the main private endpoint and DNS setup
+}
 
 /*
   Assigns the project SMI the storage blob data contributor role on the storage account
@@ -250,18 +250,18 @@ module aiSearchRoleAssignments 'modules-network-secured/ai-search-role-assignmen
   ]
 }
 
-// module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
-//   name: 'vpn-for-clients-${uniqueSuffix}-deployment'
-//   params: {
-//     location: location
-//     vnetId: vnetForClients.outputs.virtualNetworkId
-//     dnsSubnetId: vnetForClients.outputs.dnsSubnetId
-//     vpnSubnetId: vnetForClients.outputs.vpnSubnetId
-//     dnsResolverName: 'dns-resolver-${uniqueSuffix}'
-//     vpnPublicIpName: 'ip-vpn-${uniqueSuffix}'
-//     vpnGatewayName: 'vpn-gateway-${uniqueSuffix}'
-//   }
-// }
+module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
+  name: 'vpn-for-clients-${uniqueSuffix}-deployment'
+  params: {
+    location: location
+    vnetId: vnetForClients.outputs.virtualNetworkId
+    dnsSubnetId: vnetForClients.outputs.dnsSubnetId
+    vpnSubnetId: vnetForClients.outputs.vpnSubnetId
+    dnsResolverName: 'dns-resolver-${uniqueSuffix}'
+    vpnPublicIpName: 'ip-vpn-${uniqueSuffix}'
+    vpnGatewayName: 'vpn-gateway-${uniqueSuffix}'
+  }
+}
 
 output accountName string = aiAccount.outputs.accountName
 output cosmosDBName string = aiDependencies.outputs.cosmosDBName

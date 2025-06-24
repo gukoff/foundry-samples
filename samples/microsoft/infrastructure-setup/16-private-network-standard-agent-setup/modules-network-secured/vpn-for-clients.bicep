@@ -28,12 +28,11 @@ resource inboundEndpoint 'Microsoft.Network/dnsResolvers/inboundEndpoints@2023-0
         subnet: {
           id: dnsSubnetId
         }
-        privateIpAddress: '172.16.4.4'
         privateIpAllocationMethod: 'Dynamic'
       }
     ]
   }
-  location: 'swedencentral'
+  location: location
   parent: clientDnsResolver
   name: 'inbound-endpoint-1'
 }
