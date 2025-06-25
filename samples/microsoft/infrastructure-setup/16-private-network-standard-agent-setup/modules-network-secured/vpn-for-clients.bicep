@@ -76,6 +76,22 @@ resource vpn 'Microsoft.Network/virtualNetworkGateways@2024-07-01' = {
         }
       }
     ]
+    vpnClientConfiguration: {
+      vpnClientAddressPool: {
+        addressPrefixes: [
+          '172.16.201.0/24'
+        ]
+      }
+      vpnClientProtocols: [
+        'OpenVPN'
+      ]
+      vpnAuthenticationTypes: [
+        'AAD'
+      ]
+      aadTenant: '${environment().authentication.loginEndpoint}/${subscription().tenantId}/'
+      aadAudience: 'c632b3df-fb67-4d84-bdcf-b95ad541b5c8'  //  Azure VPN Client
+      aadIssuer: 'https://sts.windows.net/${subscription().tenantId}/'
+    }
     natRules: []
     virtualNetworkGatewayPolicyGroups: []
     enableBgpRouteTranslationForNat: false

@@ -46,6 +46,20 @@ resource project 'Microsoft.CognitiveServices/accounts/projects@2025-04-01-previ
     displayName: displayName
   }
 
+  // resource project_connection_foundry 'connections@2025-04-01-preview' = {
+  //   name: account.name
+  //   properties: {
+  //     category: 'AIServices'
+  //     target: account.properties.endpoint
+  //     authType: 'AAD'
+  //     metadata: {
+  //       ApiType: 'Azure'
+  //       ResourceId: account.id
+  //       location: account.location
+  //     }
+  //   }
+  // }
+
   resource project_connection_cosmosdb_account 'connections@2025-04-01-preview' = {
     name: cosmosDBName
     properties: {
