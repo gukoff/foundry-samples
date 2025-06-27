@@ -61,7 +61,7 @@ resource vpn 'Microsoft.Network/virtualNetworkGateways@2024-07-01' = {
   name: vpnGatewayName
   location: location
   properties: {
-    enablePrivateIpAddress: false
+    enablePrivateIpAddress: true
     ipConfigurations: [
       {
         name: 'default'
