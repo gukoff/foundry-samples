@@ -447,14 +447,23 @@ dependsOn: [
   ]
 }
 
-module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
-  name: 'vpn-for-clients-${uniqueSuffix}-deployment'
+module dnsForClients 'modules-network-secured/dns-for-clients.bicep' = {
+  name: 'dns-for-clients-${uniqueSuffix}-deployment'
   params: {
     location: location
     vnetId: vnetForClients.outputs.virtualNetworkId
     dnsSubnetId: vnetForClients.outputs.dnsSubnetId
-    vpnSubnetId: vnetForClients.outputs.vpnSubnetId
     dnsResolverName: 'dns-resolver-${uniqueSuffix}'
+    dnsIpAddress: vnetForClients.outputs.dnsIpAddress
+  }
+}
+
+
+module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
+  name: 'vpn-for-clients-${uniqueSuffix}-deployment'
+  params: {
+    location: location
+    vpnSubnetId: vnetForClients.outputs.vpnSubnetId
     vpnPublicIpName: 'ip-vpn-${uniqueSuffix}'
     vpnGatewayName: 'vpn-gateway-${uniqueSuffix}'
   }

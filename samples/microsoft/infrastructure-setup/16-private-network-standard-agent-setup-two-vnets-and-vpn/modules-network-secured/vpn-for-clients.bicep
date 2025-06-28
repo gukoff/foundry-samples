@@ -1,41 +1,11 @@
 @description('Azure region for the deployment')
 param location string
 
-param vnetId string
-param dnsSubnetId string
 param vpnSubnetId string
 
-param dnsResolverName string
 param vpnPublicIpName string
 param vpnGatewayName string
 
-
-resource clientDnsResolver 'Microsoft.Network/dnsResolvers@2023-07-01-preview' = {
-  properties: {
-    virtualNetwork: {
-      id: vnetId
-    }
-  }
-  location: location
-  name: dnsResolverName
-}
-
-
-resource inboundEndpoint 'Microsoft.Network/dnsResolvers/inboundEndpoints@2023-07-01-preview' = {
-  properties: {
-    ipConfigurations: [
-      {
-        subnet: {
-          id: dnsSubnetId
-        }
-        privateIpAllocationMethod: 'Dynamic'
-      }
-    ]
-  }
-  location: location
-  parent: clientDnsResolver
-  name: 'inbound-endpoint-1'
-}
 
 resource publicIpVpn 'Microsoft.Network/publicIPAddresses@2024-07-01' = {
   name: vpnPublicIpName
