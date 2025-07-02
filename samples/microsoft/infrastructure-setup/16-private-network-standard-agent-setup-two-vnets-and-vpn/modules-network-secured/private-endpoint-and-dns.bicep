@@ -65,7 +65,7 @@ param cosmosDBResourceGroupName string = resourceGroup().name
 // Reference existing services that need private endpoints
 resource aiAccount 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
   name: aiAccountName
-  scope: resourceGroup()
+  scope: resourceGroup(aiSearchSubscriptionId, aiSearchResourceGroupName) // assume it's in the same resource group as AI Search
 }
 
 resource aiSearch 'Microsoft.Search/searchServices@2023-11-01' existing = {

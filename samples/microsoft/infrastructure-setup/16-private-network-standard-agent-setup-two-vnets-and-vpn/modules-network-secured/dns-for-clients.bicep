@@ -1,5 +1,5 @@
 @description('Azure region for the deployment')
-param location string
+param location string = resourceGroup().location
 
 param vnetId string
 param dnsSubnetId string

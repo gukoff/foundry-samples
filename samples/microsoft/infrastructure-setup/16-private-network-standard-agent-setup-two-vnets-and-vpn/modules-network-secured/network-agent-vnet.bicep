@@ -1,5 +1,5 @@
 @description('Azure region for the deployment')
-param location string
+param location string = resourceGroup().location
 
 @description('The name of the virtual network')
 param vnetName string

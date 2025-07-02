@@ -77,8 +77,12 @@ param modelSkuName string = 'GlobalStandard'
 @description('The tokens per minute (TPM) of your model deployment')
 param modelCapacity int = 1
 
+param resourceGroupAgents string
+param resourceGroupClients string
+
+
 // Create a short, unique suffix, that will be unique to each resource group
-var uniqueSuffix = substring(uniqueString('${resourceGroup().id}'), 0, 5)
+var uniqueSuffix = substring(uniqueString('${resourceGroupAgents}${resourceGroupClients}'), 0, 5)
 var accountName = toLower('${aiServices}${uniqueSuffix}')
 
 @description('Name for your project resource.')
@@ -134,38 +138,37 @@ var existingVnetPassedIn = existingVnetResourceId != ''
 
 var acsParts = split(aiSearchResourceId, '/')
 var aiSearchServiceSubscriptionId = searchPassedIn ? acsParts[2] : subscription().subscriptionId
-var aiSearchServiceResourceGroupName = searchPassedIn ? acsParts[4] : resourceGroup().name
+var aiSearchServiceResourceGroupName = searchPassedIn ? acsParts[4] : resourceGroupAgents
 
 var cosmosParts = split(azureCosmosDBAccountResourceId, '/')
 var cosmosDBSubscriptionId = cosmosPassedIn ? cosmosParts[2] : subscription().subscriptionId
-var cosmosDBResourceGroupName = cosmosPassedIn ? cosmosParts[4] : resourceGroup().name
+var cosmosDBResourceGroupName = cosmosPassedIn ? cosmosParts[4] : resourceGroupAgents
 
 var storageParts = split(azureStorageAccountResourceId, '/')
 var azureStorageSubscriptionId = storagePassedIn ? storageParts[2] : subscription().subscriptionId
-var azureStorageResourceGroupName = storagePassedIn ? storageParts[4] : resourceGroup().name
+var azureStorageResourceGroupName = storagePassedIn ? storageParts[4] : resourceGroupAgents
 
 var vnetParts = split(existingVnetResourceId, '/')
 var vnetSubscriptionId = existingVnetPassedIn ? vnetParts[2] : subscription().subscriptionId
-var vnetResourceGroupName = existingVnetPassedIn ? vnetParts[4] : resourceGroup().name
-var existingVnetName = existingVnetPassedIn ? last(vnetParts) : vnetName
+var vnetResourceGroupName = existingVnetPassedIn ? vnetParts[4] : resourceGroupAgents
+var existingVnetName = existingVnetPassedIn ? last(vnetParts) : 'vnet-agents-${uniqueSuffix}'
 var trimVnetName = trim(existingVnetName)
 
 @description('The name of the project capability host to be created')
 param projectCapHost string = 'caphostproj'
 
+targetScope = 'subscription'
+
 // Create Virtual Network and Subnets
 module vnet 'modules-network-secured/network-agent-vnet.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'vnet-${trimVnetName}-${uniqueSuffix}-deployment'
   params: {
-    location: location
     vnetName: trimVnetName
     useExistingVnet: existingVnetPassedIn
     existingVnetResourceGroupName: vnetResourceGroupName
     agentSubnetName: agentSubnetName
     peSubnetName: peSubnetName
-    vnetAddressPrefix: vnetAddressPrefix
-    agentSubnetPrefix: agentSubnetPrefix
-    peSubnetPrefix: peSubnetPrefix
     existingVnetSubscriptionId: vnetSubscriptionId
   }
 }
@@ -173,10 +176,8 @@ module vnet 'modules-network-secured/network-agent-vnet.bicep' = {
 
 // VNet for clients
 module vnetForClients 'modules-network-secured/vnet-for-clients.bicep' = {
+  scope: resourceGroup(resourceGroupClients)
   name: '${uniqueSuffix}-vnet-for-clients'
-  params: {
-    location: location
-  }
 }
 
 
@@ -184,6 +185,7 @@ module vnetForClients 'modules-network-secured/vnet-for-clients.bicep' = {
   Create the AI Services account and gpt-4o model deployment
 */
 module aiAccount 'modules-network-secured/ai-account-identity.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'ai-${accountName}-${uniqueSuffix}-deployment'
   params: {
     // workspace organization
@@ -203,6 +205,7 @@ module aiAccount 'modules-network-secured/ai-account-identity.bicep' = {
   If they do, it will set the corresponding output to true. If they do not exist, it will set the output to false.
 */
 module validateExistingResources 'modules-network-secured/validate-existing-resources.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'validate-existing-resources-${uniqueSuffix}-deployment'
   params: {
     aiSearchResourceId: aiSearchResourceId
@@ -214,6 +217,7 @@ module validateExistingResources 'modules-network-secured/validate-existing-reso
 // This module will create new agent dependent resources
 // A Cosmos DB account, an AI Search Service, and a Storage Account are created if they do not already exist
 module aiDependencies 'modules-network-secured/standard-dependent-resources.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'dependencies-${accountName}-${uniqueSuffix}-deployment'
   params: {
     location: location
@@ -258,6 +262,7 @@ resource cosmosDB 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = 
 // 3. Links private DNS zones to the VNet for name resolution
 // 4. Configures network policies to restrict access to private endpoints only
 module privateEndpointAndDNS 'modules-network-secured/private-endpoint-and-dns.bicep' = {
+    scope: resourceGroup(resourceGroupAgents)
     name: '${uniqueSuffix}-private-endpoint'
     params: {
       aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
@@ -284,6 +289,7 @@ module privateEndpointAndDNS 'modules-network-secured/private-endpoint-and-dns.b
 }
 
 module privateEndpointAndDNSforClients 'modules-network-secured/private-endpoint-and-dns.bicep' = {
+    scope: resourceGroup(resourceGroupClients)
     name: '${uniqueSuffix}-private-endpoint-cl'
     params: {
       aiAccountName: aiAccount.outputs.accountName    // AI Services to secure
@@ -314,6 +320,7 @@ module privateEndpointAndDNSforClients 'modules-network-secured/private-endpoint
   Creates a new project (sub-resource of the AI Services account)
 */
 module aiProject 'modules-network-secured/ai-project-identity.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'ai-${projectName}-${uniqueSuffix}-deployment'
   params: {
     // workspace organization
@@ -345,6 +352,7 @@ module aiProject 'modules-network-secured/ai-project-identity.bicep' = {
 }
 
 module formatProjectWorkspaceId 'modules-network-secured/format-project-workspace-id.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'format-project-workspace-id-${uniqueSuffix}-deployment'
   params: {
     projectWorkspaceId: aiProject.outputs.projectWorkspaceId
@@ -367,7 +375,7 @@ module storageAccountRoleAssignment 'modules-network-secured/azure-storage-accou
   ]
 }
 
-// The Comos DB Operator role must be assigned before the caphost is created
+// The Cosmos DB Operator role must be assigned before the caphost is created
 module cosmosAccountRoleAssignments 'modules-network-secured/cosmosdb-account-role-assignment.bicep' = {
   name: 'cosmos-account-ra-${projectName}-${uniqueSuffix}-deployment'
   scope: resourceGroup(cosmosDBSubscriptionId, cosmosDBResourceGroupName)
@@ -397,6 +405,7 @@ module aiSearchRoleAssignments 'modules-network-secured/ai-search-role-assignmen
 
 // This module creates the capability host for the project and account
 module addProjectCapabilityHost 'modules-network-secured/add-project-capability-host.bicep' = {
+  scope: resourceGroup(resourceGroupAgents)
   name: 'capabilityHost-configuration-${uniqueSuffix}-deployment'
   params: {
     accountName: aiAccount.outputs.accountName
@@ -448,9 +457,9 @@ dependsOn: [
 }
 
 module dnsForClients 'modules-network-secured/dns-for-clients.bicep' = {
+  scope: resourceGroup(resourceGroupClients)
   name: 'dns-for-clients-${uniqueSuffix}-deployment'
   params: {
-    location: location
     vnetId: vnetForClients.outputs.virtualNetworkId
     dnsSubnetId: vnetForClients.outputs.dnsSubnetId
     dnsResolverName: 'dns-resolver-${uniqueSuffix}'
@@ -460,9 +469,9 @@ module dnsForClients 'modules-network-secured/dns-for-clients.bicep' = {
 
 
 module vpnForClients 'modules-network-secured/vpn-for-clients.bicep' = {
+  scope: resourceGroup(resourceGroupClients)
   name: 'vpn-for-clients-${uniqueSuffix}-deployment'
   params: {
-    location: location
     vpnSubnetId: vnetForClients.outputs.vpnSubnetId
     vpnPublicIpName: 'ip-vpn-${uniqueSuffix}'
     vpnGatewayName: 'vpn-gateway-${uniqueSuffix}'
