@@ -312,7 +312,6 @@ module privateEndpointAndDNSforClients 'modules-network-secured/private-endpoint
     aiSearch      // Ensure AI Search exists
     storage       // Ensure Storage exists
     cosmosDB      // Ensure Cosmos DB exists
-    privateEndpointAndDNS // only deploy after the previous one is done to avoid conflicts 
   ]
 }
 
@@ -345,6 +344,7 @@ module aiProject 'modules-network-secured/ai-project-identity.bicep' = {
   }
   dependsOn: [
      privateEndpointAndDNS
+     privateEndpointAndDNSforClients
      cosmosDB
      aiSearch
      storage
@@ -372,6 +372,7 @@ module storageAccountRoleAssignment 'modules-network-secured/azure-storage-accou
   dependsOn: [
    storage
    privateEndpointAndDNS
+   privateEndpointAndDNSforClients
   ]
 }
 
@@ -386,6 +387,7 @@ module cosmosAccountRoleAssignments 'modules-network-secured/cosmosdb-account-ro
   dependsOn: [
     cosmosDB
     privateEndpointAndDNS
+    privateEndpointAndDNSforClients
   ]
 }
 
@@ -400,6 +402,7 @@ module aiSearchRoleAssignments 'modules-network-secured/ai-search-role-assignmen
   dependsOn: [
     aiSearch
     privateEndpointAndDNS
+    privateEndpointAndDNSforClients
   ]
 }
 
@@ -420,6 +423,7 @@ module addProjectCapabilityHost 'modules-network-secured/add-project-capability-
      storage       // Ensure Storage exists
      cosmosDB
      privateEndpointAndDNS
+     privateEndpointAndDNSforClients
      cosmosAccountRoleAssignments
      storageAccountRoleAssignment
      aiSearchRoleAssignments

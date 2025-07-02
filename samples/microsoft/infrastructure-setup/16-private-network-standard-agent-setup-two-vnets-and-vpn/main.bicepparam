@@ -29,5 +29,5 @@ param agentSubnetPrefix = ''
 param peSubnetPrefix = ''
 
  
-param resourceGroupAgents = 'rg-agents-3-ai'
-param resourceGroupClients = 'rg-agents-3-clients'
+param resourceGroupAgents = 'rg-agents-4-ai'
+param resourceGroupClients = 'rg-agents-4-clients'
